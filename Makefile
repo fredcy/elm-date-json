@@ -1,4 +1,9 @@
 build: elm.js
 
 elm.js: src/Main.elm
-	elm make src/Main.elm --output=elm.js
+	elm make src/Main.elm --yes --output=elm.js
+
+clean:
+	-rm elm.js
+	-rm -r elm-stuff/build-artifacts
+

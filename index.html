@@ -7,7 +7,11 @@
     <body>
         <script src="elm.js"></script>
         <script type="text/javascript">
-         Elm.Main.fullscreen()
+         var flags = {
+             now: new Date(),
+             foo: "bar"
+         };
+         Elm.Main.fullscreen(flags);
         </script>
     </body>
 </html>
