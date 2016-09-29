@@ -11,7 +11,12 @@
              now: new Date(),
              foo: "bar"
          };
-         Elm.Main.fullscreen(flags);
+
+         var app = Elm.Main.fullscreen(flags);
+
+         setInterval(function() {
+             app.ports.newDate.send(new Date());
+         }, 5000);
         </script>
     </body>
 </html>

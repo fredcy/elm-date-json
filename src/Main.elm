@@ -1,4 +1,4 @@
-module Main exposing (main)
+port module Main exposing (main)
 
 import Date exposing (Date)
 import Html
@@ -13,11 +13,13 @@ type alias Flags =
 
 
 type alias Model =
-    Flags
+    { flags : Flags
+    , newNow : Maybe (Result String Date)
+    }
 
 
 type Msg
-    = NoOp
+    = NewDate Json.Value
 
 
 main =
@@ -31,12 +33,18 @@ main =
 
 init : Flags -> ( Model, Cmd Msg )
 init flags =
-    ( flags, Cmd.none )
+    ( { flags = flags, newNow = Nothing }, Cmd.none )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    ( model, Cmd.none )
+    case msg |> Debug.log "msg" of
+        NewDate raw ->
+            let
+                newNow =
+                    Json.decodeValue Json.date raw
+            in
+                { model | newNow = Just newNow } ! []
 
 
 view : Model -> Html.Html Msg
@@ -53,12 +61,12 @@ viewDate model =
         dateResult : Result String Date
         dateResult =
             -- this is what's newly possible
-            Json.decodeValue Json.date model.now
+            Json.decodeValue Json.date model.flags.now
 
         fooResult : Result String Date
         fooResult =
             -- this should result in Err
-            Json.decodeValue Json.date model.foo
+            Json.decodeValue Json.date model.flags.foo
     in
         Html.div []
             [ Html.h2 [] [ Html.text "date" ]
@@ -71,4 +79,7 @@ viewDate model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.none
+    newDate NewDate
+
+
+port newDate : (Json.Value -> msg) -> Sub msg
