@@ -3,12 +3,14 @@ port module Main exposing (main)
 import Date exposing (Date)
 import Html
 import Html.App
-import Json.Decode as Json
+import Json.Decode
+import Json.Encode
+import Time
 
 
 type alias Flags =
-    { now : Json.Value
-    , foo : Json.Value
+    { now : Json.Decode.Value
+    , foo : Json.Decode.Value
     }
 
 
@@ -19,7 +21,7 @@ type alias Model =
 
 
 type Msg
-    = NewDate Json.Value
+    = NewDate Json.Decode.Value
 
 
 main =
@@ -41,10 +43,24 @@ update msg model =
     case msg |> Debug.log "msg" of
         NewDate raw ->
             let
-                newNow =
-                    Json.decodeValue Json.date raw
+                dateResult =
+                    Json.Decode.decodeValue Json.Decode.date raw
+
+                cmd =
+                    case dateResult of
+                        Ok date ->
+                            let
+                                -- manipulate the date value to show we can
+                                tomorrowTime =
+                                    Date.toTime date + 24 * Time.hour
+                            in
+                                -- example of encoding Date value and sending over port
+                                Date.fromTime tomorrowTime |> Json.Encode.date |> sendDate
+
+                        Err _ ->
+                            Cmd.none
             in
-                { model | newNow = Just newNow } ! []
+                { model | newNow = Just dateResult } ! [ cmd ]
 
 
 view : Model -> Html.Html Msg
@@ -61,12 +77,12 @@ viewDate model =
         dateResult : Result String Date
         dateResult =
             -- this is what's newly possible
-            Json.decodeValue Json.date model.flags.now
+            Json.Decode.decodeValue Json.Decode.date model.flags.now
 
         fooResult : Result String Date
         fooResult =
             -- this should result in Err
-            Json.decodeValue Json.date model.flags.foo
+            Json.Decode.decodeValue Json.Decode.date model.flags.foo
     in
         Html.div []
             [ Html.h2 [] [ Html.text "date" ]
@@ -82,4 +98,7 @@ subscriptions model =
     newDate NewDate
 
 
-port newDate : (Json.Value -> msg) -> Sub msg
+port newDate : (Json.Decode.Value -> msg) -> Sub msg
+
+
+port sendDate : Json.Encode.Value -> Cmd msg

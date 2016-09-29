@@ -14,6 +14,11 @@
 
          var app = Elm.Main.fullscreen(flags);
 
+         app.ports.sendDate.subscribe(function(value) {
+             // prove that we are getting Date values back over port
+             console.log("value", value instanceof Date, value);
+         });
+
          setInterval(function() {
              app.ports.newDate.send(new Date());
          }, 5000);
